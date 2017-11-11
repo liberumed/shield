@@ -574,6 +574,8 @@ definitions:
         properties:
           name:
             type: string
+            description: |
+              Name must start with a letter, can only contain letters and numbers
           redirect_uri:
             type: string
           settings:
