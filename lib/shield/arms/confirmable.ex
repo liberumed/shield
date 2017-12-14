@@ -6,14 +6,13 @@ defmodule Shield.Arm.Confirmable do
   import Ecto.Query
   import Plug.Conn
   alias Shield.Notifier.Channel.Email, as: EmailChannel
+  alias Shield.Config
 
   @behaviour Shield.Arm
   @renderer Application.get_env(:authable, :renderer)
   @repo Application.get_env(:authable, :repo)
   @resource_owner Application.get_env(:authable, :resource_owner)
   @token_store Application.get_env(:authable, :token_store)
-  @front_end Application.get_env(:shield, :front_end)
-  @front_end_base Map.get(@front_end, :base)
 
   def init(opts), do: Keyword.get opts, :enabled, false
 
@@ -66,8 +65,10 @@ defmodule Shield.Arm.Confirmable do
     })
     case @repo.insert(changeset) do
       {:ok, token} ->
-        confirmation_url = String.replace(@front_end_base <>
-          Map.get(@front_end, :confirmation_path),
+        front_end_base = Config.front_end_base()
+        front_end_confirmation_path = Config.front_end_confirmation_path()
+        confirmation_url = String.replace(
+          front_end_base <> front_end_confirmation_path,
           "{{confirmation_token}}", token.value)
         EmailChannel.deliver([user.email], :confirmation,
           %{identity: user.email, confirmation_url: confirmation_url})
